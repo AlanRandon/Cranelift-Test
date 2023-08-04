@@ -1,0 +1,44 @@
+; float average(const float *array, size_t count) {
+;     double sum = 0;
+;     for (size_t i = 0; i < count; i++)
+;         sum += array[i];
+;     return sum / count;
+; }
+
+; TODO: port to 64 bit
+
+function %average(i32, i32) -> f32 system_v {
+    ss0 = explicit_slot 8         ; Stack slot for `sum`.
+
+block1(v0: i32, v1: i32):                   ; v0: pointer to the array, v1: count (array length)
+    v2 = f64const 0x0.0                     ; v2 = 0 as constant f64
+    stack_store v2, ss0                     ; add v2 to the stack store for sum
+    brif v1, block2, block5                 ; if count == 0, jump to end, else continue
+
+block2:
+    v3 = iconst.i32 0                       ; v3 = const 0 as i32
+    jump block3(v3)                         ; run block3, starting from index 0
+
+block3(v4: i32):
+    v5 = imul_imm v4, 4                     ; find memory offset for current index, by multiplying the index by the number of bytes in each element (i32 -> 4)
+    v6 = iadd v0, v5                        ; find actual memory pointer by adding the offset to the array pointer
+    v7 = load.f32 v6                        ; extract the bytes as an f32 at current pointer
+    v8 = fpromote.f64 v7                    ; convert f32 to f64
+    v9 = stack_load.f64 ss0                 ; get sum from the stack
+    v10 = fadd v8, v9                       ; add number to sum
+    stack_store v10, ss0                    ; replace sum in stack
+    v11 = iadd_imm v4, 1                    ; find next index
+    v12 = icmp ult v11, v1                  ; test if next index is less then count (array length)
+    brif v12, block3(v11), block4           ; if less, re-run block with next index, otherwise continue
+
+block4:
+    v13 = stack_load.f64 ss0                ; load sum from the stack
+    v14 = fcvt_from_uint.f64 v1             ; 
+    v15 = fdiv v13, v14
+    v16 = fdemote.f32 v15
+    return v16
+
+block5:
+    v100 = f32const +NaN
+    return v100
+}
