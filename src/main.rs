@@ -40,15 +40,14 @@ fn main() {
             (name, module.get_finalized_function(func_id))
         })
         .collect::<HashMap<_, _>>();
-
     let average = unsafe {
-        std::mem::transmute::<_, unsafe fn(*const f32, i32) -> f32>(
-            functions.get("average").unwrap(),
+        std::mem::transmute::<_, unsafe fn(*const f32, i64) -> f32>(
+            functions.get("%average").unwrap(),
         )
     };
 
-    let data = vec![1.0_f32, 2.0, 3.0];
+    let data = vec![1.0f32, 2.0, 3.0];
 
-    let result = unsafe { average(data.as_slice().as_ptr(), data.len() as i32) };
+    let result = unsafe { average(data.as_slice().as_ptr(), data.len() as i64) };
     println!("{result}");
 }
