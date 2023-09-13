@@ -30,7 +30,7 @@ impl Default for JIT {
         flag_builder.set("use_colocated_libcalls", "false").unwrap();
         flag_builder.set("is_pic", "false").unwrap();
         let isa_builder = cranelift_native::builder().unwrap_or_else(|msg| {
-            panic!("host machine is not supported: {}", msg);
+            panic!("host machine is not supported: {msg}");
         });
         let isa = isa_builder
             .finish(settings::Flags::new(flag_builder))
@@ -379,7 +379,7 @@ impl<'a> FunctionTranslator<'a> {
     }
 
     fn translate_global_data_addr(&mut self, name: String) -> Value {
-        let sym = self
+        let sym: cranelift_module::DataId = self
             .module
             .declare_data(&name, Linkage::Export, true, false)
             .expect("problem declaring data object");
